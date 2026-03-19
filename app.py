@@ -68,34 +68,45 @@ def load_model():
 
 @st.cache_data
 def load_data():
-    np.random.seed(42)
-    n = 5000
-
-    job_titles = ["data analyst", "software engineer", "data scientist",
-                  "ml engineer", "ux/ui designer", "network engineer",
-                  "data engineer", "product manager", "financial advisor",
-                  "digital marketing specialist"]
-    locations  = ["India", "USA", "UK", "Canada", "Germany",
-                  "Australia", "Singapore", "UAE", "France", "Japan"]
-    work_types = ["Full-Time", "Part-Time", "Contract", "Temporary", "Intern"]
-    exp_cats   = ["Fresher (0 yrs)", "Junior (1-2 yrs)", "Mid (3-5 yrs)"]
-    companies  = ["Small", "Medium", "Large", "Enterprise"]
-
-    df = pd.DataFrame({
-        "Job Title":      np.random.choice(job_titles, n),
-        "location":       np.random.choice(locations, n),
-        "Work Type":      np.random.choice(work_types, n),
-        "Company Size":   np.random.choice(companies, n),
-        "salary_avg":     np.random.uniform(67500, 97500, n).round(0),
-        "exp_category":   np.random.choice(exp_cats, n),
-        "Experience":     np.random.choice(
-            ["0 to 2 Years", "2 to 5 Years", "5 to 8 Years"], n),
-        "Qualifications": np.random.choice(
-            ["B.Com", "B.Tech", "MBA", "MCA", "BCA"], n),
-    })
-
+    df = pd.read_csv("jobs_deploy.csv")
     skill_df = pd.read_csv("skill_demand.csv")
     return df, skill_df
+
+@st.cache_resource
+def load_model():
+    from sklearn.ensemble import GradientBoostingClassifier
+    from sklearn.preprocessing import LabelEncoder
+
+    df = pd.read_csv("jobs_deploy.csv")
+
+    FEATURES = ["Job Title", "Experience", "location",
+                "Work Type", "Company Size", "Qualifications"]
+
+    def salary_bracket(sal):
+        if sal < 75000: return 0
+        elif sal <= 90000: return 1
+        else: return 2
+
+    df["salary_bracket"] = df["salary_avg"].apply(salary_bracket)
+    model_df = df[FEATURES + ["salary_bracket"]].dropna()
+
+    encoders = {}
+    col_vals = {}
+    encoded = model_df.copy()
+
+    for col in FEATURES:
+        enc = LabelEncoder()
+        encoded[col] = enc.fit_transform(encoded[col].astype(str))
+        encoders[col] = enc
+        col_vals[col] = sorted(model_df[col].astype(str).unique().tolist())
+
+    X = encoded[FEATURES]
+    y = encoded["salary_bracket"]
+
+    clf = GradientBoostingClassifier(n_estimators=30, random_state=42)
+    clf.fit(X, y)
+
+    return clf, encoders, col_vals
 
 
 # ─── Load data and model ───────────────────────────────────
