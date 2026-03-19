@@ -4,7 +4,7 @@
 > to predict salary brackets and uncover skill demand trends.
 
 ## Live Demo
-[Click here to view the app](your-streamlit-link-here)
+[Click here to view the app](https://job-market-analyzer-ehhurd69zcrfjsveynwuxh.streamlit.app)
 *(Update this link after deployment)*
 
 ---
@@ -99,5 +99,5 @@ streamlit run app.py
 
 ## Author
 Tushar Gupta
-[GitHub](https://github.com/yourusername)
+[GitHub](https://github.com/3Paradox)
 [LinkedIn](https://linkedin.com/in/yourprofile)
